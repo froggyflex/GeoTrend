@@ -35,7 +35,7 @@ public class BackgroundWorker
     Context context;
     ProgressDialog pro;
     final private String FCM_API = "https://fcm.googleapis.com/fcm/send";
-    final private String serverKey = "key=" + "AAAA5cDlQVI:APA91bG4-c9iypNBMjHDKg_G8qxjpQd25AjguMMLK7mXk7i_CVysFRt_XaDBz8YM8JVXWFX6i92hVK8qMjnnIdnUt668LBI0ym8-cpKxBKXWr5i6UNzLnnbS4z2sSqAZT_xiE0s7DDZr";
+    final private String serverKey = "key=" + "my_key";
     final private String contentType = "application/json";
     String lat;
     String lon;
