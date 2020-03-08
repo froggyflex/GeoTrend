@@ -1,7 +1,9 @@
 package com.example.geotrend;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.Toast;
@@ -70,7 +72,7 @@ public class BackgroundWorker
             lon = list[3];
             id  = list[1];
 
-            localHttpURLConnection = (HttpURLConnection)new URL(DEVICE_URL+"GeoTrendFilter.php").openConnection();
+            localHttpURLConnection = (HttpURLConnection)new URL(PC_URL+"GeoTrendFilter.php").openConnection();
             localHttpURLConnection.setRequestMethod("POST");
             localHttpURLConnection.setDoOutput(true);
             localHttpURLConnection.setDoInput(true);
@@ -111,7 +113,7 @@ public class BackgroundWorker
 
     protected void onPostExecute(String gottenResponse) {
         super.onPostExecute(gottenResponse);
-        Log.d("GEOJSON", gottenResponse);
+       // Log.d("GEOJSON", gottenResponse);
         String NOTIFICATION_TITLE;
         String NOTIFICATION_MESSAGE;
         String LINK_DATA;
@@ -131,7 +133,12 @@ public class BackgroundWorker
                 editor.putString("check", "OUT");
                 Log.d("GEOJSON", "PATH TOKEN UPDATED AS USER COMES OUT FROM A FENCE");
                 //if the area is not in the shared prefs, the user is still outside of the fences since the response is not a json obj
-                editor.remove(gottenResponse);
+                Map<String,?> keys = prefs.getAll();
+                for(Map.Entry<String,?> entry : keys.entrySet()){
+                if(entry.getKey().startsWith("MX")){
+                    editor.remove(entry.getKey());
+                }
+            }
                 editor.commit();
                 Log.d("GEOJSON", "USER IS OUTSIDE OF THE SPECIFIED AREAS - CLEARING DATA");
             }
@@ -189,7 +196,7 @@ public class BackgroundWorker
                         if(prefs.getString("MX:"+NOTIFICATION_MESSAGE, null).equals("SENT"))
                         {
                             //based on the shared prefs the user fence is still registered as active so we dont need to send a notification
-                            updateEntry(DEVICE_URL+"updateEntry.php", prefs.getString("token", ""), false);
+                            updateEntry(PC_URL+"updateEntry.php", prefs.getString("token", ""), false);
                             Log.d("GEOJSON", " USER IS STILL INSIDE THE AREA", null);
                         }
                         else
@@ -201,7 +208,7 @@ public class BackgroundWorker
                            // editor.putString("token", getRandomString(7));
                             editor.putString("poiC", lon+":"+lat);
                             editor.apply();
-                            updateEntry(DEVICE_URL+"updateEntry.php", prefs.getString("token", ""), true);
+                            updateEntry(PC_URL+"updateEntry.php", prefs.getString("token", ""), true);
                         }
                     }
 
@@ -213,23 +220,16 @@ public class BackgroundWorker
                             //editor.putString("token", getRandomString(7));
                             editor.putString("poiC", lon+":"+lat);
                             editor.apply();
-                            updateEntry(DEVICE_URL+"updateEntry.php", prefs.getString("token", ""), true);
+                            updateEntry(PC_URL+"updateEntry.php", prefs.getString("token", ""), true);
 
                     }
 
                 }
 
-
-
             } catch (JSONException e) {
                 e.printStackTrace();
             }
         }
-
-
-
-
-
 
     }
 
@@ -257,11 +257,11 @@ public class BackgroundWorker
                 new Response.ErrorListener() {
                     @Override
                     public void onErrorResponse(VolleyError error) {
-                        Log.d("GEOJSON", error.networkResponse.toString());
+                        Log.d("GEOJSONE", error.networkResponse.toString());
                     }
                 }){
             @Override
-            protected Map<String,String> getParams(){
+            protected Map<String,String> getParams() throws AuthFailureError{
                 Map<String,String> params = new HashMap<String, String>();
                 params.put("did",id);
                 params.put("token",token);
@@ -271,11 +271,14 @@ public class BackgroundWorker
                 params.put("poiC",prefs.getString("poiC", null));
                 return params;
             }
+            @Override
+            public Priority getPriority() {
+                return Priority.NORMAL;
+            }
 
         };
 
-        RequestQueue requestQueue = Volley.newRequestQueue(context);
-        requestQueue.add(stringRequest);
+        MySingleton.getInstance(context).addToRequestQueue(stringRequest);
 
     }
     private void sendNotification(JSONObject notification) {
@@ -287,7 +290,8 @@ public class BackgroundWorker
                 },
                 error -> {
                     Toast.makeText(context, "Request error", Toast.LENGTH_LONG).show();
-                    Log.d("GEOJSON", "onErrorResponse: Didn't work");
+                    Log.d("GEOJSON", error.networkResponse.toString());
+
                 }){
             @Override
             public Map<String, String> getHeaders() throws AuthFailureError {
@@ -296,8 +300,13 @@ public class BackgroundWorker
                 params.put("Content-Type", contentType);
                 return params;
             }
+            @Override
+            public Priority getPriority() {
+                return Priority.IMMEDIATE;
+            }
         };
         MySingleton.getInstance(context).addToRequestQueue(jsonObjectRequest);
+
     }
 
     protected void onPreExecute()
