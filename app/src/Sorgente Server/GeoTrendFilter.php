@@ -33,7 +33,7 @@ function elabStatus($status, $lat, $long)
 
      // update geotrend.walk
     //  set expanded = st_buffer(geometry,0.0005)::geometry(Polygon,4326)
-
+     $mix = "";
      if($status == "walking")
      {
         //check if first is inside the buffered area
@@ -50,13 +50,17 @@ function elabStatus($status, $lat, $long)
         }
 
       
-           
-        foreach ($presence_array as $value) {
+        
 
-            $mix = $value['mx'];
+        if($result)
+        {
+            foreach ($presence_array as $value) {
+
+           
 
             if($value['is'] === true || $value['is'] === "t")
-            {
+            { 
+                $mix = $value['mx'];
 
                  //check now if the device is inside the real area
                 $queryR      = "select st_contains( a.geometry, st_geomfromtext('POINT($long $lat)', 4326)) as isthere, message from geotrend.walk as a where a.message = '$mix';";
@@ -96,7 +100,9 @@ function elabStatus($status, $lat, $long)
             }
 
 
+            }
         }
+        
 
 
     }
