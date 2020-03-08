@@ -6,6 +6,7 @@ import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import android.Manifest;
 import android.annotation.TargetApi;
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -24,6 +25,8 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 import android.widget.Button;
+import android.widget.Toast;
+
 import com.google.firebase.messaging.FirebaseMessaging;
 import java.util.ArrayList;
 import java.util.List;
@@ -75,7 +78,7 @@ public class MainActivity extends AppCompatActivity {
 
         android_id = Settings.Secure.getString(getApplicationContext().getContentResolver(),
                 Settings.Secure.ANDROID_ID);
-        URL = DEVICE_URL+"myPaths.php?userid=" + android_id;
+        URL = PC_URL+"myPaths.php?userid=" + android_id;
 
         map = findViewById(R.id.map);
         map.getSettings().setJavaScriptEnabled(true); // enable javascript
@@ -131,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
         stop.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Toast.makeText(getApplicationContext(), "Service stopped!", Toast.LENGTH_SHORT).show();
                 stopService(new Intent(MainActivity.this, LocationService.class));
             }
         });
@@ -146,6 +150,10 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    public void start()
+    {
+        startService(new Intent(MainActivity.this, LocationService.class));
+    }
     @NonNull
     private static String getRandomString(final int sizeOfRandomString)
     {
@@ -223,10 +231,24 @@ public class MainActivity extends AppCompatActivity {
 
         });
         map.loadUrl(URL);
-        //startService(new Intent(MainActivity.this, LocationService.class));
+       // startService(new Intent(MainActivity.this, LocationService.class));
+
     }
 
+    @Override
+    public void onPause() {
 
+        super.onPause();
+        if(!(isMyServiceRunning(LocationService.class)))
+        {
+            Log.d("GEOJSON", "ONLOCATION Restarted");
+            startService(new Intent(MainActivity.this, LocationService.class));
+        }
+        else
+        {
+            Log.d("GEOJSON", "ONLOCATION Running");
+        }
+    }
     public void loadPreferences() {
 
        String test = "";
@@ -256,5 +278,15 @@ public class MainActivity extends AppCompatActivity {
             test += (printVal + "\n");
         }
         Log.d("GEOJSON", test);
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
