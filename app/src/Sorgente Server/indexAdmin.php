@@ -33,12 +33,8 @@ function rand_color() {
 	
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="description" content="Benvenuto su Idromardi, il servizio di lettura acqua online veloce e facile da usare.">
-    <meta property="og:url" content="www.idromardi.it">
-    <meta property="og:description" content="Idromardi offre un servizio online ai sui clienti per tenerli sempre aggiornati sul loro consumo. Essi, possono inoltre inviare richieste di letture nel caso non siano in casa il giorno della lettura! ">
-    
-	<!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <link rel="icon" href="pics/website.png" type="image/gif" sizes="16x16">
+
+        <link rel="icon" href="pics/website.png" type="image/gif" sizes="16x16">
 	<title>GeoTrend Admin Page</title>
 	
 
